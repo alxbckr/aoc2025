@@ -1,0 +1,130 @@
+use std::fs;
+
+fn read_file(filename: &str) -> Vec<String> {
+    let contents = fs::read_to_string(filename)
+    .expect("Something went wrong reading the file");
+    return contents.split("\n").map(|s| s.to_string()).collect();
+}
+
+fn parse(filename: &str) -> Vec<i32> {
+    let lines = read_file(filename);
+    return lines.iter()
+        .filter(|s| !s.is_empty())
+        .map(|s| {
+            let direction = s.chars().next().unwrap_or('R');
+            let num_str = &s[1..];
+            let value = num_str.parse::<i32>().unwrap_or(0);
+            if direction == 'L' { -value } else { value }
+    }).collect();
+}
+
+fn part_1(filename: &str) -> i32 {   
+    let codes = parse(filename);
+    let mut ans = 0;
+    let mut pointer: i32 = 50;
+    for code in codes {
+        pointer = ( pointer + code ) % 100;
+        if pointer == 0 {
+            ans += 1;
+        }
+    }
+    return ans;
+}
+
+fn part_2(filename: &str) -> i32 {
+    let codes = parse(filename);
+    let mut ans = 0;
+    let mut pointer: i32 = 50;
+    for code in codes {
+        let mut full_cycles = 0;
+        full_cycles += ( ( pointer + code ) / 100 ).abs();
+        if code > 0 {
+            pointer = ( pointer + code ) % 100;
+        } else if code < 0 {
+            if pointer + code <= 0 && pointer != 0 {
+                full_cycles += 1;
+            }
+            pointer = ( pointer + ( 100 + code % 100 ) ) % 100;
+        }
+        ans += full_cycles;
+        //println!("Pointer: {}, full_cycles: {}, ans: {}", pointer, full_cycles, ans);
+    }
+    return ans;
+}
+
+fn main() {
+    let input_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("input.txt");
+    let input_path_str = input_path.to_str().unwrap();
+    println!("Answer for part 1: {}", part_1(input_path_str));
+    println!("Answer for part 2: {}", part_2(input_path_str));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::io::Write;
+
+    fn create_test_file(filename: &str, content: &str) {
+        let mut file = fs::File::create(filename).unwrap();
+        file.write_all(content.as_bytes()).unwrap();
+    }
+
+    fn cleanup_test_file(filename: &str) {
+        let _ = fs::remove_file(filename);
+    }
+
+    #[test]
+    fn test_read_file() {
+        let test_file = "dummy_read.txt";
+        create_test_file(test_file, "line1\nline2\nline3");
+        
+        let result = read_file(test_file);
+        
+        assert_eq!(result.len(), 3);
+        assert_eq!(result[0], "line1");
+        assert_eq!(result[1], "line2");
+        assert_eq!(result[2], "line3");
+        
+        cleanup_test_file(test_file);
+    }
+
+    #[test]
+    fn test_parse_example_file() {
+        let test_file = "dummy_parse_example.txt";
+        create_test_file(test_file, "L50\nR20\nL10");
+        
+        let result = parse(test_file);
+        
+        assert_eq!(result.len(), 3);
+        assert_eq!(result, vec![-50, 20, -10]);
+        
+        cleanup_test_file(test_file);
+    }
+
+    #[test]
+    fn test_parse_empty_file() {
+        let test_file = "dummy_parse_empty.txt";
+        create_test_file(test_file, "");
+        
+        let result = parse(test_file);
+        
+        assert_eq!(result.len(), 0);
+        
+        cleanup_test_file(test_file);
+    }
+
+    #[test]
+    fn test_part_1() {
+        let test_file = "test-part1.txt";
+        let result = part_1(test_file);
+        assert_eq!(result,3);
+    }
+
+    #[test]
+    fn test_part_2() {
+        let test_file = "test-part2.txt";
+        let result = part_2(test_file);
+        assert_eq!(result,6);
+    }
+}
