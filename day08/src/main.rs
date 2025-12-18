@@ -121,7 +121,7 @@ fn part_2(filename: &str) -> i64 {
     }    
 
     let mut dist_idx = 0;
-    let mut lastPair : CoordPair = distances[0];
+    let mut last_pair : CoordPair = distances[0];
 
     while dist_idx < distances.len() {
         let pair = &distances[dist_idx];
@@ -147,10 +147,10 @@ fn part_2(filename: &str) -> i64 {
             circuits[target].append(&mut to_append);
             // println!(" monving {} to {}", remove_idx, target);
         }        
-        lastPair = *pair;
+        last_pair = *pair;
     }
 
-    ( lastPair.c1.x * lastPair.c2.x ) as i64
+    ( last_pair.c1.x * last_pair.c2.x ) as i64
 }
 
 fn main() {
